@@ -1,35 +1,43 @@
-// ตัวแปรหลัก
-let baseBet      = 10;
-let currentBet   = baseBet;
-let capital      = 1000;
-let round        = 1;
-let totalSpent   = 0;
-let totalProfit  = 0;
+// script.js
+let baseBet      = 10,
+    currentBet   = baseBet,
+    capital      = 1000,
+    round        = 1,
+    totalSpent   = 0,
+    totalProfit  = 0;
 
-// เก็บ DNA สำหรับ UI และ bets จริง
-let dnaUIList    = [];   // ['follow','oppose','skip',...]
-let betList      = [];   // ['follow','oppose',...] ไม่เก็บ skip
-let resultList   = [];   // [true,false,...]
+// เก็บข้อมูล
+let dnaUIList    = [],    // ['follow','oppose','skip',...]
+    betList      = [],    // ['follow','oppose',...]
+    betAmounts   = [],    // [10,20,null,...]
+    resultList   = [];    // [true,false,...]
 
-// โหมดเดินเงิน
-let mode         = 'martingale';
-let paroliStreak = 0;
-let fiboSeq      = [1,1];
-let fiboIndex    = 0;
-let seq1326      = [1,3,2,6];
-let idx1326      = 0;
+// เดินเงิน
+let mode         = 'martingale',
+    paroliStreak = 0,
+    fiboSeq      = [1,1],
+    fiboIndex    = 0,
+    seq1326      = [1,3,2,6],
+    idx1326      = 0;
+
+// อัปเดตแสดงเดิมพันรอบถัดไป
+function updateCurrentBetDisplay() {
+  document.getElementById("currentBetDisplay").textContent = currentBet;
+}
 
 // ตั้งทุนเริ่มต้น
 function setCapital() {
-  capital = parseInt(document.getElementById("startCapital").value) || 0;
+  capital = +document.getElementById("startCapital").value || 0;
   document.getElementById("capitalLeft").textContent = capital;
   resetBetLogic();
+  updateCurrentBetDisplay();
 }
 
 // ตั้งเดิมพันเริ่มต้น
 function setBaseBet() {
-  baseBet    = parseInt(document.getElementById("baseBet").value) || 0;
+  baseBet = +document.getElementById("baseBet").value || 0;
   currentBet = baseBet;
+  updateCurrentBetDisplay();
 }
 
 // เปลี่ยนโหมดเดินเงิน
@@ -39,113 +47,110 @@ function changeMode() {
   alert("เปลี่ยนโหมดเป็น: " + mode);
 }
 
-// รีเซ็ต logic สูตรเดินเงิน (ไม่ล้างประวัติ)
+// รีเซ็ต logic สูตรเดินเงิน
 function resetBetLogic() {
-  currentBet   = baseBet;
-  paroliStreak = 0;
-  fiboSeq      = [1,1];
-  fiboIndex    = 0;
-  idx1326      = 0;
+  currentBet = baseBet;
+  paroliStreak= 0;
+  fiboSeq     = [1,1];
+  fiboIndex   = 0;
+  idx1326     = 0;
+  updateCurrentBetDisplay();
+}
+
+// สร้างและแสดงช่อง DNA + จำนวนเงิน
+function appendDNACell(side, amt) {
+  const cell = document.createElement("div");
+  cell.className = 'dna-cell';
+  const sym = document.createElement("span");
+  sym.className = 'symbol ' +
+    (side==='follow'? 'green': side==='oppose'? 'red': 'gray');
+  sym.textContent = side==='follow'? '✔️'
+                   : side==='oppose'? '❌' : '✕';
+  cell.appendChild(sym);
+  const ba = document.createElement("span");
+  ba.className = 'bet-amt';
+  ba.textContent = (amt!=null? amt+'฿' : '');
+  cell.appendChild(ba);
+  document.getElementById("dnaBox").appendChild(cell);
+}
+
+// ขึ้นบรรทัดใหม่ทุก 14 ตัว
+function checkLineBreak() {
+  if (dnaUIList.length % 14 === 0) {
+    document.getElementById("dnaBox").appendChild(document.createElement("br"));
+  }
 }
 
 // จด DNA (ตาม/สวน)
 function markDNA(side) {
   dnaUIList.push(side);
-  betList.push(side);
-  appendDNASpan(side);
+  if (side !== 'skip') betList.push(side);
+  betAmounts.push(currentBet);
+  appendDNACell(side, currentBet);
   checkLineBreak();
 }
 
 // จด skip DNA (ข้าม)
 function markSkip() {
   dnaUIList.push('skip');
-  appendDNASpan('skip');
+  betAmounts.push(null);
+  appendDNACell('skip', null);
   checkLineBreak();
 }
 
-// สร้าง span และใส่ใน UI
-function appendDNASpan(side) {
-  const span = document.createElement("span");
-  if (side === 'follow') {
-    span.textContent = '✔️'; span.className = 'green';
-  } else if (side === 'oppose') {
-    span.textContent = '❌'; span.className = 'red';
-  } else {
-    span.textContent = '✕'; span.className = 'gray';
-  }
-  document.getElementById("dnaBox").appendChild(span);
-}
-
-// ขึ้นบรรทัดใหม่ทุก 12 ตัว
-function checkLineBreak() {
-  if (dnaUIList.length % 12 === 0) {
-    document.getElementById("dnaBox").appendChild(document.createElement("br"));
-  }
-}
-
-// ย้อนกลับ DNA ตัวสุดท้าย (ถ้ายังไม่บันทึกผลของ bet นั้น)
+// ย้อนกลับ DNA ตัวสุดท้าย (ถ้ายังไม่บันทึกผล)
 function undoDNA() {
-  if (dnaUIList.length === 0) return alert("ยังไม่มี DNA ให้ย้อนกลับ");
+  if (!dnaUIList.length) return alert("ยังไม่มี DNA ให้ย้อน");
   const box = document.getElementById("dnaBox");
-  // เอา span หรือ br ตัวสุดท้ายออกก่อน
   let last = box.lastChild;
   if (last && last.nodeName === 'BR') {
     box.removeChild(last);
     last = box.lastChild;
   }
-  // เอา span ตัวสุดท้ายออก
-  if (last && last.nodeName === 'SPAN') {
+  if (last && last.classList.contains('dna-cell')) {
     box.removeChild(last);
   }
-  // อัปเดตรายการในอาเรย์
-  const side = dnaUIList.pop();
-  // ถ้าไม่ใช่ skip และยังไม่มีผลบันทึก ให้เอา betList ออกด้วย
-  if (side !== 'skip' && betList.length > resultList.length) {
-    betList.pop();
-  }
+  dnaUIList.pop();
+  if (betList.length > resultList.length) betList.pop();
+  betAmounts.pop();
 }
 
 // กดยืนยันผลจริง (ชนะ/แพ้)
 function confirmResult(win) {
-  const nextBetIndex = resultList.length;
-  if (nextBetIndex >= betList.length) {
-    return alert("ไม่มีการเดิมพันค้างบันทึกผล (จด 'ตาม' หรือ 'สวน' ก่อนแล้วค่อยบันทึกผล)");
+  const idx = resultList.length;
+  if (idx >= betList.length) {
+    return alert("ไม่มีการเดิมพันรอผล");
   }
-  if (capital < currentBet) {
-    return alert("ทุนไม่พอสำหรับเดิมพันรอบนี้!");
-  }
+  const amt = betAmounts[idx];
+  if (capital < amt) return alert("ทุนไม่พอ");
 
-  // บันทึกผล
   resultList.push(win);
-  capital    -= currentBet;
-  totalSpent += currentBet;
-  const profit = win ? currentBet : -currentBet;
-  totalProfit+= profit;
-  if (win) capital += currentBet * 2;
+  capital   -= amt;
+  totalSpent+= amt;
+  const pf = win? amt : -amt;
+  totalProfit+= pf;
+  if (win) capital += amt * 2;
 
-  // แสดงประวัติ
-  const side = betList[nextBetIndex];
   const li = document.createElement("li");
-  li.textContent = 
-    `รอบ ${round}: แทง ${side==='follow'?'ตาม':'สวน'} → ${win?'ชนะ':'แพ้'} | ` +
-    `เดิมพัน: ${currentBet} บาท | ผลต่าง: ${profit>0?'+':''}${profit} บาท`;
+  const side = betList[idx];
+  li.textContent =
+    `รอบ ${round}: แทง ${side==='follow'?'ตาม':'สวน'} → ` +
+    `${win?'ชนะ':'แพ้'} | เดิมพัน: ${amt}฿ | ผลต่าง: ${pf>0?'+':''}${pf}฿`;
   document.getElementById("moneyLog").appendChild(li);
 
-  // อัปเดตตัวเลข
   document.getElementById("totalSpent").textContent  = totalSpent;
   document.getElementById("totalProfit").textContent = totalProfit;
   document.getElementById("capitalLeft").textContent = capital;
 
-  // คำนวณไม้ต่อไป
-  updateNextBet(win);
+  updateNextBet(win, amt);
   round++;
 }
 
 // คำนวณไม้ต่อไปตามโหมด
-function updateNextBet(win) {
+function updateNextBet(win, lastAmt) {
   switch (mode) {
     case 'martingale':
-      currentBet = win ? baseBet : currentBet * 2;
+      currentBet = win? baseBet : lastAmt * 2;
       break;
     case 'paroli':
       if (win) {
@@ -158,47 +163,44 @@ function updateNextBet(win) {
       }
       break;
     case 'fibonacci':
-      if (win) {
-        fiboIndex = Math.max(fiboIndex - 2, 0);
-      } else {
+      if (win) fiboIndex = Math.max(fiboIndex-2,0);
+      else {
         fiboIndex++;
         if (fiboIndex >= fiboSeq.length) {
-          fiboSeq.push(fiboSeq[fiboSeq.length-1] + fiboSeq[fiboSeq.length-2]);
+          fiboSeq.push(fiboSeq.at(-1) + fiboSeq.at(-2));
         }
       }
       currentBet = baseBet * fiboSeq[fiboIndex];
       break;
     case '1326':
-      if (win) {
-        idx1326++;
-        if (idx1326 >= seq1326.length) idx1326 = 0;
-      } else {
-        idx1326 = 0;
-      }
+      if (win) idx1326 = (idx1326+1) % seq1326.length;
+      else idx1326 = 0;
       currentBet = baseBet * seq1326[idx1326];
       break;
     case 'flat':
       currentBet = baseBet;
       break;
     case 'manual':
+      // ไม่เปลี่ยนอัตโนมัติ
       break;
   }
+  updateCurrentBetDisplay();
 }
 
 // รีเซ็ตทั้งหมด
 function resetAll() {
-  if (!confirm("ต้องการล้างข้อมูลทั้งหมดหรือไม่?")) return;
-  setCapital();
-  setBaseBet();
-  round       = 1;
-  totalSpent  = 0;
-  totalProfit = 0;
-  dnaUIList   = [];
-  betList     = [];
-  resultList  = [];
+  if (!confirm("ล้างข้อมูลทั้งหมด?")) return;
+  setCapital(); setBaseBet(); round = 1;
+  totalSpent = 0; totalProfit = 0;
+  dnaUIList = []; betList = []; betAmounts = []; resultList = [];
   resetBetLogic();
-  document.getElementById("dnaBox").innerHTML   = "";
+  document.getElementById("dnaBox").innerHTML = "";
   document.getElementById("moneyLog").innerHTML = "";
-  document.getElementById("totalSpent").textContent  = "0";
+  document.getElementById("totalSpent").textContent = "0";
   document.getElementById("totalProfit").textContent = "0";
 }
+
+// เรียกแสดงค่าเริ่มต้น
+document.addEventListener("DOMContentLoaded", () => {
+  updateCurrentBetDisplay();
+});
