@@ -1,4 +1,5 @@
 // script.js
+
 let baseBet      = 10,
     currentBet   = baseBet,
     capital      = 1000,
@@ -6,7 +7,7 @@ let baseBet      = 10,
     totalSpent   = 0,
     totalProfit  = 0;
 
-// เก็บข้อมูล
+// เก็บข้อมูลการจด
 let dnaUIList    = [],    // ['follow','oppose','skip',...]
     betList      = [],    // ['follow','oppose',...]
     betAmounts   = [],    // [10,20,null,...]
@@ -20,7 +21,7 @@ let mode         = 'martingale',
     seq1326      = [1,3,2,6],
     idx1326      = 0;
 
-// อัปเดตแสดงเดิมพันรอบถัดไป
+// แสดงเดิมพันรอบถัดไปข้างๆช่อง baseBet
 function updateCurrentBetDisplay() {
   document.getElementById("currentBetDisplay").textContent = currentBet;
 }
@@ -40,20 +41,20 @@ function setBaseBet() {
   updateCurrentBetDisplay();
 }
 
-// เปลี่ยนโหมดเดินเงิน
+// เปลี่ยนสูตรเดินเงิน
 function changeMode() {
   mode = document.getElementById("modeSelect").value;
   resetBetLogic();
   alert("เปลี่ยนโหมดเป็น: " + mode);
 }
 
-// รีเซ็ต logic สูตรเดินเงิน
+// รีเซ็ต logic เดินเงิน (ไม่ล้างประวัติ)
 function resetBetLogic() {
-  currentBet = baseBet;
-  paroliStreak= 0;
-  fiboSeq     = [1,1];
-  fiboIndex   = 0;
-  idx1326     = 0;
+  currentBet   = baseBet;
+  paroliStreak = 0;
+  fiboSeq      = [1,1];
+  fiboIndex    = 0;
+  idx1326      = 0;
   updateCurrentBetDisplay();
 }
 
@@ -115,12 +116,10 @@ function undoDNA() {
   betAmounts.pop();
 }
 
-// กดยืนยันผลจริง (ชนะ/แพ้)
+// ยืนยันผลจริง (ชนะ/แพ้)
 function confirmResult(win) {
   const idx = resultList.length;
-  if (idx >= betList.length) {
-    return alert("ไม่มีการเดิมพันรอผล");
-  }
+  if (idx >= betList.length) return alert("ไม่มีการเดิมพันรอผล");
   const amt = betAmounts[idx];
   if (capital < amt) return alert("ทุนไม่พอ");
 
@@ -155,7 +154,7 @@ function updateNextBet(win, lastAmt) {
     case 'paroli':
       if (win) {
         paroliStreak++;
-        currentBet = baseBet * Math.pow(2, paroliStreak);
+        currentBet = baseBet * 2**paroliStreak;
         if (paroliStreak >= 2) paroliStreak = 0;
       } else {
         paroliStreak = 0;
@@ -173,7 +172,7 @@ function updateNextBet(win, lastAmt) {
       currentBet = baseBet * fiboSeq[fiboIndex];
       break;
     case '1326':
-      if (win) idx1326 = (idx1326 + 1) % seq1326.length;
+      if (win) idx1326 = (idx1326+1) % seq1326.length;
       else idx1326 = 0;
       currentBet = baseBet * seq1326[idx1326];
       break;
