@@ -1,15 +1,27 @@
-let currentBet = 100;
+let baseBet = 10;
+let currentBet = baseBet;
 let round = 1;
 let totalSpent = 0;
 let totalProfit = 0;
 let pending = null;
-let mode = 'martingale'; // default
+let mode = 'martingale';
+let capital = 1000;
 
 let paroliStreak = 0;
 let fiboSeq = [1, 1];
 let fiboIndex = 0;
 let sequence1326 = [1, 3, 2, 6];
 let index1326 = 0;
+
+function setCapital() {
+  capital = parseInt(document.getElementById("startCapital").value) || 0;
+  document.getElementById("capitalLeft").textContent = capital;
+}
+
+function setBaseBet() {
+  baseBet = parseInt(document.getElementById("baseBet").value) || 10;
+  currentBet = baseBet;
+}
 
 function changeMode() {
   mode = document.getElementById("modeSelect").value;
@@ -18,7 +30,7 @@ function changeMode() {
 }
 
 function resetBettingLogic() {
-  currentBet = 100;
+  currentBet = baseBet;
   paroliStreak = 0;
   fiboSeq = [1, 1];
   fiboIndex = 0;
@@ -56,9 +68,17 @@ function confirmResult(win) {
     return;
   }
 
+  if (capital < currentBet) {
+    alert("ทุนไม่พอสำหรับเดิมพันรอบนี้!");
+    return;
+  }
+
+  capital -= currentBet;
   totalSpent += currentBet;
+
   const profit = win ? currentBet : -currentBet;
   totalProfit += profit;
+  capital += win ? currentBet * 2 : 0;
 
   const log = document.createElement("li");
   log.textContent = `รอบ ${round}: แทง ${pending === 'follow' ? 'ตาม' : 'สวน'} → ${win ? 'ชนะ' : 'แพ้'} | เดิมพัน: ${currentBet} บาท | ผลต่าง: ${profit > 0 ? '+' : ''}${profit} บาท`;
@@ -66,6 +86,7 @@ function confirmResult(win) {
 
   document.getElementById("totalSpent").textContent = totalSpent;
   document.getElementById("totalProfit").textContent = totalProfit;
+  document.getElementById("capitalLeft").textContent = capital;
 
   updateNextBet(win);
   round++;
@@ -75,16 +96,16 @@ function confirmResult(win) {
 function updateNextBet(win) {
   switch (mode) {
     case 'martingale':
-      currentBet = win ? 100 : currentBet * 2;
+      currentBet = win ? baseBet : currentBet * 2;
       break;
     case 'paroli':
       if (win) {
         paroliStreak++;
-        currentBet = 100 * Math.pow(2, paroliStreak);
+        currentBet = baseBet * Math.pow(2, paroliStreak);
         if (paroliStreak >= 2) paroliStreak = 0;
       } else {
         paroliStreak = 0;
-        currentBet = 100;
+        currentBet = baseBet;
       }
       break;
     case 'fibonacci':
@@ -97,7 +118,7 @@ function updateNextBet(win) {
           fiboSeq.push(next);
         }
       }
-      currentBet = 100 * fiboSeq[fiboIndex];
+      currentBet = baseBet * fiboSeq[fiboIndex];
       break;
     case '1326':
       if (win) {
@@ -106,26 +127,31 @@ function updateNextBet(win) {
       } else {
         index1326 = 0;
       }
-      currentBet = 100 * sequence1326[index1326];
+      currentBet = baseBet * sequence1326[index1326];
       break;
     case 'flat':
-      currentBet = 100;
+      currentBet = baseBet;
       break;
   }
 }
 
 function resetAll() {
   if (confirm("ต้องการล้างข้อมูลทั้งหมดหรือไม่?")) {
-    currentBet = 100;
+    baseBet = parseInt(document.getElementById("baseBet").value) || 10;
+    currentBet = baseBet;
     round = 1;
     totalSpent = 0;
     totalProfit = 0;
     pending = null;
 
+    capital = parseInt(document.getElementById("startCapital").value) || 1000;
+    document.getElementById("capitalLeft").textContent = capital;
+
     document.getElementById("dnaBox").innerHTML = "";
     document.getElementById("moneyLog").innerHTML = "";
     document.getElementById("totalSpent").textContent = "0";
     document.getElementById("totalProfit").textContent = "0";
+
     resetBettingLogic();
   }
 }
