@@ -84,7 +84,7 @@ function checkLineBreak() {
 // จด DNA (ตาม/สวน)
 function markDNA(side) {
   dnaUIList.push(side);
-  if (side !== 'skip') betList.push(side);
+  betList.push(side);
   betAmounts.push(currentBet);
   appendDNACell(side, currentBet);
   checkLineBreak();
@@ -98,7 +98,7 @@ function markSkip() {
   checkLineBreak();
 }
 
-// ย้อนกลับ DNA ตัวสุดท้าย (ถ้ายังไม่บันทึกผล)
+// ย้อนกลับ DNA ตัวสุดท้าย
 function undoDNA() {
   if (!dnaUIList.length) return alert("ยังไม่มี DNA ให้ย้อน");
   const box = document.getElementById("dnaBox");
@@ -173,7 +173,7 @@ function updateNextBet(win, lastAmt) {
       currentBet = baseBet * fiboSeq[fiboIndex];
       break;
     case '1326':
-      if (win) idx1326 = (idx1326+1) % seq1326.length;
+      if (win) idx1326 = (idx1326 + 1) % seq1326.length;
       else idx1326 = 0;
       currentBet = baseBet * seq1326[idx1326];
       break;
@@ -181,7 +181,6 @@ function updateNextBet(win, lastAmt) {
       currentBet = baseBet;
       break;
     case 'manual':
-      // ไม่เปลี่ยนอัตโนมัติ
       break;
   }
   updateCurrentBetDisplay();
@@ -201,6 +200,4 @@ function resetAll() {
 }
 
 // เรียกแสดงค่าเริ่มต้น
-document.addEventListener("DOMContentLoaded", () => {
-  updateCurrentBetDisplay();
-});
+document.addEventListener("DOMContentLoaded", updateCurrentBetDisplay);
