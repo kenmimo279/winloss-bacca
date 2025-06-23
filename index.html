@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -5,57 +6,54 @@
   <title>DNA + ระบบเดินเงิน</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; padding: 20px; max-width: 900px; margin: auto; }
-    .container { display: flex; gap: 20px; }
-    .controls, .history { flex: 1; }
-    .controls button { padding: 10px 20px; margin: 5px; font-size: 16px; cursor: pointer; }
+    body { font-family: sans-serif; padding:20px; max-width:900px; margin:auto; }
+    .container { display:flex; gap:20px; }
+    .controls, .history { flex:1; }
+    .controls button { padding:8px 16px; margin:4px; font-size:14px; cursor:pointer; }
     .dna-box {
-      border: 1px solid #ccc;
-      padding: 5px;
-      max-height: 120px;
-      overflow-y: auto;
-      white-space: normal;
-      margin-top: 20px;
+      border:1px solid #ccc; padding:5px; max-height:150px;
+      overflow-y:auto; white-space:normal; margin-top:10px;
     }
-    .dna-box span {
-      display: inline-block;
-      width: 24px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: bold;
+    .dna-cell {
+      display:inline-block; width:30px; text-align:center;
+      margin:2px; vertical-align:top;
     }
-    .green { color: green; }
-    .red   { color: red; }
-    .history {
-      border-left: 1px solid #ccc;
-      padding-left: 20px;
-      max-height: 600px;
-      overflow-y: auto;
-    }
-    .history ul { list-style: none; padding-left: 0; }
-    .history li { margin-bottom: 6px; }
-    .summary { margin-top: 10px; font-weight: bold; }
-    input { width: 80px; }
-    label { font-size: 16px; display: block; margin-bottom: 10px; }
+    .dna-cell .symbol { font-size:20px; }
+    .green { color:green; }
+    .red   { color:red; }
+    .gray  { color:gray; }
+    .next-bet-inline { font-size:14px; margin-left:16px; }
+    .history { border-left:1px solid #ccc; padding-left:20px;
+                max-height:600px; overflow-y:auto; }
+    .history ul { list-style:none; padding:0; }
+    .history li { margin-bottom:4px; font-size:14px; }
+    .summary { margin-top:8px; font-weight:bold; }
+    label { display:block; margin-bottom:8px; font-size:14px; }
+    input, select { width:100px; margin-left:8px; }
   </style>
 </head>
 <body>
 
-  <h2>บันทึก DNA + ระบบเดินเงิน</h2>
+  <h2>DNA + ระบบเดินเงิน</h2>
   <div class="container">
 
-    <!-- ปุ่มควบคุม -->
+    <!-- controls -->
     <div class="controls">
-
-      <label>ทุนเริ่มต้น (บาท):
+      <label>
+        ทุนเริ่มต้น:
         <input type="number" id="startCapital" value="1000" onchange="setCapital()" />
       </label>
 
-      <label>เดิมพันเริ่มต้น (บาท):
+      <label>
+        เดิมพันเริ่มต้น:
         <input type="number" id="baseBet" value="10" onchange="setBaseBet()" />
+        <span class="next-bet-inline">
+          | เดิมพันรอบถัดไป: <strong><span id="currentBetDisplay">10</span>฿</strong>
+        </span>
       </label>
 
-      <label>สูตรเดินเงิน:
+      <label>
+        สูตรเดินเงิน:
         <select id="modeSelect" onchange="changeMode()">
           <option value="martingale">Martingale</option>
           <option value="paroli">Paroli</option>
@@ -66,27 +64,28 @@
         </select>
       </label>
 
-      <div style="margin-top:15px;">
+      <div style="margin-top:10px;">
         <button onclick="markDNA('follow')">ตาม ✔️</button>
         <button onclick="markDNA('oppose')">สวน ❌</button>
+        <button onclick="markSkip()">ข้าม ✕</button>
+        <button onclick="undoDNA()">ย้อนกลับ ↩️</button>
       </div>
-      <div style="margin-top:10px;">
+      <div style="margin-top:6px;">
         <button onclick="confirmResult(true)">ชนะ ✅</button>
         <button onclick="confirmResult(false)">แพ้ ❌</button>
       </div>
       <button style="margin-top:10px;" onclick="resetAll()">รีเซ็ตทั้งหมด</button>
 
       <div class="dna-box" id="dnaBox"></div>
-
     </div>
 
-    <!-- ประวัติเดินเงิน -->
+    <!-- history -->
     <div class="history">
       <h3>ประวัติเดินเงิน</h3>
       <ul id="moneyLog"></ul>
-      <p class="summary">รวมทุนที่ใช้: <span id="totalSpent">0</span> บาท</p>
-      <p class="summary">กำไร/ขาดทุนสุทธิ: <span id="totalProfit">0</span> บาท</p>
-      <p class="summary">ทุนคงเหลือ: <span id="capitalLeft">1000</span> บาท</p>
+      <p class="summary">รวมทุน: <span id="totalSpent">0</span>฿</p>
+      <p class="summary">กำไร/ขาดทุน: <span id="totalProfit">0</span>฿</p>
+      <p class="summary">ทุนคงเหลือ: <span id="capitalLeft">1000</span>฿</p>
     </div>
 
   </div>
