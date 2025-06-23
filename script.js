@@ -1,5 +1,4 @@
 // script.js
-
 let baseBet      = 10,
     currentBet   = baseBet,
     capital      = 1000,
@@ -8,10 +7,10 @@ let baseBet      = 10,
     totalProfit  = 0;
 
 // เก็บข้อมูลการจด
-let dnaUIList    = [],    // ['follow','oppose','skip',...]
-    betList      = [],    // ['follow','oppose',...]
-    betAmounts   = [],    // [10,20,null,...]
-    resultList   = [];    // [true,false,...]
+let dnaUIList    = [],  // ['follow','oppose','skip',...]
+    betList      = [],  // ['follow','oppose',...]
+    betAmounts   = [],  // [10,20,null,...]
+    resultList   = [];
 
 // เดินเงิน
 let mode         = 'martingale',
@@ -21,7 +20,7 @@ let mode         = 'martingale',
     seq1326      = [1,3,2,6],
     idx1326      = 0;
 
-// แสดงเดิมพันรอบถัดไปข้างๆช่อง baseBet
+// แสดงเดิมพันรอบถัดไป
 function updateCurrentBetDisplay() {
   document.getElementById("currentBetDisplay").textContent = currentBet;
 }
@@ -36,8 +35,8 @@ function setCapital() {
 
 // ตั้งเดิมพันเริ่มต้น
 function setBaseBet() {
-  baseBet = +document.getElementById("baseBet").value || 0;
-  currentBet = baseBet;
+  baseBet      = +document.getElementById("baseBet").value || 0;
+  currentBet   = baseBet;
   updateCurrentBetDisplay();
 }
 
@@ -48,7 +47,7 @@ function changeMode() {
   alert("เปลี่ยนโหมดเป็น: " + mode);
 }
 
-// รีเซ็ต logic เดินเงิน (ไม่ล้างประวัติ)
+// รีเซ็ต logic เดินเงิน
 function resetBetLogic() {
   currentBet   = baseBet;
   paroliStreak = 0;
@@ -58,8 +57,8 @@ function resetBetLogic() {
   updateCurrentBetDisplay();
 }
 
-// สร้างและแสดงช่อง DNA + จำนวนเงิน
-function appendDNACell(side, amt) {
+// สร้างและแสดงสัญลักษณ์ DNA เท่านั้น
+function appendDNACell(side) {
   const cell = document.createElement("div");
   cell.className = 'dna-cell';
   const sym = document.createElement("span");
@@ -68,10 +67,6 @@ function appendDNACell(side, amt) {
   sym.textContent = side==='follow'? '✔️'
                    : side==='oppose'? '❌' : '✕';
   cell.appendChild(sym);
-  const ba = document.createElement("span");
-  ba.className = 'bet-amt';
-  ba.textContent = (amt!=null? amt+'฿' : '');
-  cell.appendChild(ba);
   document.getElementById("dnaBox").appendChild(cell);
 }
 
@@ -87,7 +82,7 @@ function markDNA(side) {
   dnaUIList.push(side);
   betList.push(side);
   betAmounts.push(currentBet);
-  appendDNACell(side, currentBet);
+  appendDNACell(side);
   checkLineBreak();
 }
 
@@ -95,11 +90,11 @@ function markDNA(side) {
 function markSkip() {
   dnaUIList.push('skip');
   betAmounts.push(null);
-  appendDNACell('skip', null);
+  appendDNACell('skip');
   checkLineBreak();
 }
 
-// ย้อนกลับ DNA ตัวสุดท้าย
+// ย้อนกลับ DNA
 function undoDNA() {
   if (!dnaUIList.length) return alert("ยังไม่มี DNA ให้ย้อน");
   const box = document.getElementById("dnaBox");
@@ -145,7 +140,7 @@ function confirmResult(win) {
   round++;
 }
 
-// คำนวณไม้ต่อไปตามโหมด
+// คำนวณไม้ต่อไป
 function updateNextBet(win, lastAmt) {
   switch (mode) {
     case 'martingale':
@@ -188,13 +183,19 @@ function updateNextBet(win, lastAmt) {
 // รีเซ็ตทั้งหมด
 function resetAll() {
   if (!confirm("ล้างข้อมูลทั้งหมด?")) return;
-  setCapital(); setBaseBet(); round = 1;
-  totalSpent = 0; totalProfit = 0;
-  dnaUIList = []; betList = []; betAmounts = []; resultList = [];
+  setCapital();
+  setBaseBet();
+  round = 1;
+  totalSpent = 0;
+  totalProfit = 0;
+  dnaUIList = [];
+  betList   = [];
+  betAmounts= [];
+  resultList= [];
   resetBetLogic();
-  document.getElementById("dnaBox").innerHTML = "";
+  document.getElementById("dnaBox").innerHTML   = "";
   document.getElementById("moneyLog").innerHTML = "";
-  document.getElementById("totalSpent").textContent = "0";
+  document.getElementById("totalSpent").textContent  = "0";
   document.getElementById("totalProfit").textContent = "0";
 }
 
