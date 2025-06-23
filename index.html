@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>DNA + เดินเงิน (Martingale)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    button { padding: 10px 20px; margin: 5px; font-size: 16px; cursor: pointer; }
+    .row { margin-top: 15px; }
+    .dna-box span { margin-right: 5px; font-size: 22px; font-weight: bold; }
+    .green { color: green; }
+    .red { color: red; }
+    .log { margin-top: 20px; }
+    .log ul { list-style: none; padding-left: 0; }
+    .log li { margin-bottom: 6px; }
+    .summary { margin-top: 10px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h2>บันทึก DNA + ระบบเดินเงิน (Martingale)</h2>
+
+  <div class="row">
+    <button onclick="markDNA('follow')">ตาม ✔️</button>
+    <button onclick="markDNA('oppose')">สวน ❌</button>
+  </div>
+
+  <div class="row">
+    <button onclick="confirmResult(true)">ชนะ ✅</button>
+    <button onclick="confirmResult(false)">แพ้ ❌</button>
+  </div>
+
+  <button onclick="resetAll()">รีเซ็ตทั้งหมด</button>
+
+  <div class="dna-box" id="dnaBox"></div>
+
+  <div class="log">
+    <h3>ประวัติเดินเงิน (สูตร Martingale)</h3>
+    <ul id="moneyLog"></ul>
+    <p class="summary">รวมทุนที่ใช้: <span id="totalSpent">0</span> บาท</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
